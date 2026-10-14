@@ -2,27 +2,32 @@ name: mekodatactf-ad
 
 hosts:
   - name: attacker-a
+    flavor: standard.kali
     base_box:
       image: kali
       mgmt_user: debian
 
   - name: server-a
+    flavor: standard.small
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
 
   - name: attacker-b
+    flavor: standard.kali
     base_box:
       image: kali
       mgmt_user: debian
 
   - name: server-b
+    flavor: standard.small
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
 
 routers:
   - name: router
+    flavor: standard.small
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
