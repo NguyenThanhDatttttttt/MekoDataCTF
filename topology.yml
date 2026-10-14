@@ -25,6 +25,12 @@ hosts:
       image: debian-12-x86_64
       mgmt_user: debian
 
+  - name: ubuntu-server
+    flavor: standard.small
+    base_box:
+      image: ubuntu-noble-x86_64
+      mgmt_user: ubuntu
+
 routers:
   - name: router
     flavor: standard.small
@@ -53,6 +59,95 @@ net_mappings:
   - host: server-a
     network: team-a-net
     ip: 10.10.1.20
+
+  - host: ubuntu-server
+    network: team-a-net
+    ip: 10.10.1.30
+
+  - host: attacker-b
+    network: team-b-net
+    ip: 10.10.2.10
+
+  - host: server-b
+    network: team-b-net
+    ip: 10.10.2.20
+
+router_mappings:
+  - router: router
+    network: team-a-net
+    ip: 10.10.1.1
+
+  - router: router
+    network: team-b-net
+    ip: 10.10.2.1
+
+groups: []
+``````yaml
+name: mekodatactf-ad
+
+hosts:
+  - name: attacker-a
+    flavor: standard.kali
+    base_box:
+      image: kali
+      mgmt_user: debian
+
+  - name: server-a
+    flavor: standard.small
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+
+  - name: attacker-b
+    flavor: standard.kali
+    base_box:
+      image: kali
+      mgmt_user: debian
+
+  - name: server-b
+    flavor: standard.small
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+
+  - name: ubuntu-server
+    flavor: standard.small
+    base_box:
+      image: ubuntu-noble-x86_64
+      mgmt_user: ubuntu
+
+routers:
+  - name: router
+    flavor: standard.small
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+
+wan:
+  name: internet-connection
+  cidr: 100.100.100.0/24
+
+networks:
+  - name: team-a-net
+    cidr: 10.10.1.0/24
+    accessible_by_user: false
+
+  - name: team-b-net
+    cidr: 10.10.2.0/24
+    accessible_by_user: false
+
+net_mappings:
+  - host: attacker-a
+    network: team-a-net
+    ip: 10.10.1.10
+
+  - host: server-a
+    network: team-a-net
+    ip: 10.10.1.20
+
+  - host: ubuntu-server
+    network: team-a-net
+    ip: 10.10.1.30
 
   - host: attacker-b
     network: team-b-net
