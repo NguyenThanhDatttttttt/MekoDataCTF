@@ -1,0 +1,247 @@
+---
+
+- name: Install build dependencies
+  ansible.builtin.apt:
+    name:
+      - build-essential
+      - gcc
+      - make
+      - libpam0g-dev
+      - libcap-dev
+      - libnsl-dev
+    state: present
+    update_cache: true
+
+- name: Ensure the unprivileged "ftp" account exists
+  ansible.builtin.user:
+    name: ftp
+    system: true
+    create_home: false
+    home: /srv/ftp
+    shell: /usr/sbin/nologin
+
+- name: Create the vsftpd secure chroot directory
+  ansible.builtin.file:
+    path: /usr/share/empty
+    state: directory
+    mode: "0755"
+
+- name: Unpack the bundled vsftpd 2.3.4 source
+  ansible.builtin.unarchive:
+    src: vsftpd-2.3.4.tar.gz
+    dest: /usr/local/src
+    creates: /usr/local/src/vsftpd-2.3.4/Makefile
+
+- name: Check whether vsftpd is already built and installed
+  ansible.builtin.stat:
+    path: /usr/local/sbin/vsftpd
+  register: vsftpd_installed
+
+- name: Build vsftpd 2.3.4 from source
+  when: not vsftpd_installed.stat.exists
+  block:
+    - name: Remove stale pre-built (32-bit) object files
+      ansible.builtin.command:
+        cmd: make clean
+        chdir: /usr/local/src/vsftpd-2.3.4
+
+    - name: Compile vsftpd 2.3.4 (with explicit library flags)
+      ansible.builtin.shell:
+        cmd: >-
+          make
+          CFLAGS="-O2 -Wall -Wformat-security -D_FORTIFY_SOURCE=2
+          -fstack-protector -fPIE -fcommon"
+          LIBS="-lpam -lcap -ldl -lcrypt"
+        chdir: /usr/local/src/vsftpd-2.3.4
+
+- name: Install the vsftpd binary
+  ansible.builtin.copy:
+    src: /usr/local/src/vsftpd-2.3.4/vsftpd
+    dest: /usr/local/sbin/vsftpd
+    remote_src: true
+    mode: "0755"
+  register: vsftpd_binary
+
+- name: Write the vsftpd configuration
+  ansible.builtin.copy:
+    dest: /etc/vsftpd.conf
+    mode: "0644"
+    content: |
+      listen=YES
+      listen_ipv6=NO
+      anonymous_enable=NO
+      local_enable=YES
+      write_enable=YES
+      local_umask=022
+      dirmessage_enable=YES
+      use_localtime=YES
+      xferlog_enable=YES
+      connect_from_port_20=YES
+      chroot_local_user=NO
+      secure_chroot_dir=/usr/share/empty
+      pam_service_name=vsftpd
+  register: vsftpd_conf
+
+- name: Write the PAM profile for vsftpd
+  ansible.builtin.copy:
+    dest: /etc/pam.d/vsftpd
+    mode: "0644"
+    content: |
+      #%PAM-1.0
+      auth    required pam_listfile.so item=user sense=deny file=/etc/ftpusers onerr=succeed
+      auth    required pam_unix.so
+      account required pam_unix.so
+      session required pam_unix.so
+  register: vsftpd_pam
+
+- name: Write the vsftpd systemd unit
+  ansible.builtin.copy:
+    dest: /etc/systemd/system/vsftpd.service
+    mode: "0644"
+    content: |
+      [Unit]
+      Description=vsftpd FTP server (2.3.4)
+      After=network.target
+
+      [Service]
+      Type=simple
+      ExecStart=/usr/local/sbin/vsftpd /etc/vsftpd.conf
+      ExecReload=/bin/kill -HUP $MAINPID
+      Restart=on-failure
+
+      [Install]
+      WantedBy=multi-user.target
+  register: vsftpd_unit
+
+- name: Enable and start vsftpd
+  ansible.builtin.systemd:
+    name: vsftpd
+    enabled: true
+    state: started
+    daemon_reload: true
+
+- name: Restart vsftpd when the binary, config, PAM or unit changed
+  ansible.builtin.systemd:
+    name: vsftpd
+    state: restarted
+    daemon_reload: true
+  when: >
+    vsftpd_binary.changed or vsftpd_conf.changed
+    or vsftpd_pam.changed or vsftpd_unit.changed
+
+- name: Add user and set password
+  user:
+    name: '{{ username }}'
+    password: '{{ password | password_hash(''sha512'') }}'
+    shell: '/bin/bash'
+
+- name: Create hidden directory in user A
+  ansible.builtin.file:
+    path: '/home/{{ username }}/.local/.share/.internal/.secret_file'
+    state: directory
+    owner: '{{ username }}'
+    mode: '0700'
+
+- name: Place hidden flag file inside the hidden directory
+  ansible.builtin.copy:
+    dest: '/home/{{ username }}/.local/.share/.internal/.secret_file/.contract'
+    owner: '{{ username }}'
+    mode: '0400'
+    content: "{{ hidden_flag }}\n"
+
+- name: Place flag
+  copy:
+    dest: '/root/flag.txt'
+    owner: 'root'
+    content: "{{ flag }}\n"
+    mode: '0600'
+
+- name: Ensure OpenSSH server and client are installed
+  ansible.builtin.apt:
+    name:
+      - openssh-server
+      - openssh-client
+    state: present
+ 
+- name: Enable public key authentication in sshd
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PubkeyAuthentication'
+    line: 'PubkeyAuthentication yes'
+  become: true
+  register: sshd_pubkey
+
+- name: Enable password authentication in sshd
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: '^#?PasswordAuthentication'
+    line: 'PasswordAuthentication yes'
+  become: true
+  register: sshd_password
+ 
+- name: Enable and start sshd
+  ansible.builtin.systemd:
+    name: ssh
+    enabled: true
+    state: started
+ 
+- name: Restart sshd when config changed
+  ansible.builtin.systemd:
+    name: ssh
+    state: restarted
+  when: sshd_pubkey.changed or sshd_password.changed
+ 
+- name: Add user 2 and set password for backdoor
+  user:
+    name: '{{ username2 }}'
+    password: '{{ password2 | password_hash(''sha512'') }}'
+    shell: '/bin/bash'
+ 
+- name: Add user A ({{ username }}) to user B group
+  ansible.builtin.user:
+    name: '{{ username }}'
+    groups: '{{ username2 }}'
+    append: true
+ 
+- name: Create ~/.ssh directory for user B with group-write permission
+  ansible.builtin.file:
+    path: '/home/{{ username2 }}/.ssh'
+    state: directory
+    owner: '{{ username2 }}'
+    group: '{{ username2 }}'
+    mode: '0700'
+
+- name: Add authorized_keys
+  copy:
+    src: authorized_keys
+    dest: '/home/{{ username2 }}/.ssh/authorized_keys'
+    owner: '{{ username2 }}'
+    group: '{{ username2 }}'
+    mode: '0600'
+ 
+- name: Place persistence flag in user B's .bash_profile
+  ansible.builtin.copy:
+    dest: '/home/{{ username2 }}/.bash_profile'
+    owner: '{{ username2 }}'
+    group: '{{ username2 }}'
+    mode: '0600'
+    content: |
+      # ~/.bash_profile for user B
+      if [ -f ~/.bashrc ]; then
+          . ~/.bashrc
+      fi
+ 
+      if [ -n "$SSH_CONNECTION" ] && [ -n "$SSH_TTY" ] && [ "$USER" = "{{ username2 }}" ]; then
+          cat << 'BANNER'
+ 
+        ╔═══════════════════════════════════════════════════════╗
+        ║                                                       ║
+        ║   [+] LOGIN SUCCESSFUL                                ║
+        ║                                                       ║
+        ║   {{ persistence_flag }}
+        ║                                                       ║
+        ╚═══════════════════════════════════════════════════════╝
+ 
+      BANNER
+      fi
+ 

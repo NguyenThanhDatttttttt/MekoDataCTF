@@ -1,0 +1,75 @@
+
+name: mekodatactf-ad
+
+hosts:
+  - name: attacker_a
+    base_box:
+      image: kali
+      mgmt_user: debian
+      flavor: standard.kali
+
+  - name: server_a
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+      flavor: standard.small
+
+  - name: attacker_b
+    base_box:
+      image: kali
+      mgmt_user: debian
+      flavor: standard.kali
+
+  - name: server_b
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+      flavor: standard.small
+
+routers:
+  - name: router
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+      flavor: standard.small
+
+wan:
+  name: internet-connection
+  cidr: 100.100.100.0/24
+
+networks:
+  - name: team-a-net
+    cidr: 10.10.1.0/24
+    accessible_by_user: false
+
+  - name: team-b-net
+    cidr: 10.10.2.0/24
+    accessible_by_user: false
+
+net_mappings:
+  - host: attacker_a
+    network: team-a-net
+    ip: 10.10.1.10
+
+  - host: server_a
+    network: team-a-net
+    ip: 10.10.1.20
+
+  - host: attacker_b
+    network: team-b-net
+    ip: 10.10.2.10
+
+  - host: server_b
+    network: team-b-net
+    ip: 10.10.2.20
+
+router_mappings:
+  - router: router
+    network: team-a-net
+    ip: 10.10.1.1
+
+  - router: router
+    network: team-b-net
+    ip: 10.10.2.1
+
+groups: []

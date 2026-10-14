@@ -1,0 +1,20 @@
+
+team_a_username:
+  type: username
+
+team_a_password:
+  type: password
+  length: 16
+
+team_a_flag:
+  type: text
+
+team_b_username:
+  type: username
+
+team_b_password:
+  type: password
+  length: 16
+
+team_b_flag:
+  type: text

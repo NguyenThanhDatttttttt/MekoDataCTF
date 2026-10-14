@@ -1,0 +1,53 @@
+
+---
+- name: Configure common hosts
+  hosts: hosts
+  become: true
+  roles:
+    - hosts
+
+- name: Configure Team A attacker
+  hosts: attacker_a
+  become: true
+  roles:
+    - role: user-access
+      user_access_username: user
+      user_access_password: CHANGE_ME_A
+      user_access_sudo: true
+    # Add the attacker tools role after verifying
+    # the existing role's requirements.
+
+- name: Configure Team B attacker
+  hosts: attacker_b
+  become: true
+  roles:
+    - role: user-access
+      user_access_username: user
+      user_access_password: CHANGE_ME_B
+      user_access_sudo: true
+    # Add the attacker tools role after verifying
+    # the existing role's requirements.
+
+- name: Configure Team A service
+  hosts: server_a
+  become: true
+  roles:
+    # Replace with a verified role that installs
+    # and configures Team A's competition service.
+    - role: mekodata-service-a
+
+- name: Configure Team B service
+  hosts: server_b
+  become: true
+  roles:
+    # Replace with a verified role that installs
+    # and configures Team B's competition service.
+    - role: mekodata-service-b
+
+- name: Configure routing between team networks
+  hosts: router
+  become: true
+  roles:
+    # This role must be implemented and tested.
+    # It must configure forwarding, routes and firewall rules.
+    - role: mekodata-router

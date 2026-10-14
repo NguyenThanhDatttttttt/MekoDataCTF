@@ -1,0 +1,41 @@
+- name: Adding aliases
+  loop: "{{ aliases | dict2items }}"
+  lineinfile:
+    path: /etc/hosts
+    line: "{{ item.value }} {{ item.key }}"
+
+- name: Ensure the wordlists package is installed
+  ansible.builtin.apt:
+    name: wordlists
+    state: present
+    update_cache: true
+
+- name: Decompress rockyou.txt (ships gzipped on Kali)
+  ansible.builtin.command:
+    cmd: gunzip -k /usr/share/wordlists/rockyou.txt.gz
+    creates: /usr/share/wordlists/rockyou.txt
+
+- name: Remove all other wordlists except rockyou
+  file:
+    path: "/usr/share/wordlists/{{ item }}"
+    state: absent
+  loop:
+    - dirb
+    - dirbuster
+    - fern-wifi
+    - metasploit
+    - nmap.lst
+    - wfuzz
+
+- name: Add passwords file to the home directory
+  copy:
+    src: passlist.txt
+    dest: /usr/share/wordlists/passlist.txt
+    owner: user
+    mode: '0644'
+
+- name: Add password to passlist wordlist
+  ansible.builtin.lineinfile:
+    path: /usr/share/wordlists/passlist.txt
+    line: '{{ password }}'
+    create: true
