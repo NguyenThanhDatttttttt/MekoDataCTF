@@ -1,15 +1,29 @@
 name: mekodatactf-ad
 
 hosts:
-  - name: ubuntu-server
+  - name: ubuntu-1
     flavor: standard.small
     base_box:
       image: ubuntu-noble-x86_64
       mgmt_user: ubuntu
 
-wan:
-  name: internet-connection
-  cidr: 100.100.100.0/24
+  - name: ubuntu-2
+    flavor: standard.small
+    base_box:
+      image: ubuntu-noble-x86_64
+      mgmt_user: ubuntu
+
+  - name: ubuntu-3
+    flavor: standard.small
+    base_box:
+      image: ubuntu-noble-x86_64
+      mgmt_user: ubuntu
+
+  - name: ubuntu-4
+    flavor: standard.small
+    base_box:
+      image: ubuntu-noble-x86_64
+      mgmt_user: ubuntu
 
 networks:
   - name: ubuntu-net
@@ -17,12 +31,22 @@ networks:
     accessible_by_user: false
 
 net_mappings:
-  - host: ubuntu-server
+  - host: ubuntu-1
     network: ubuntu-net
     ip: 10.10.1.10
 
+  - host: ubuntu-2
+    network: ubuntu-net
+    ip: 10.10.1.20
+
+  - host: ubuntu-3
+    network: ubuntu-net
+    ip: 10.10.1.30
+
+  - host: ubuntu-4
+    network: ubuntu-net
+    ip: 10.10.1.40
+
 routers: []
-
 router_mappings: []
-
 groups: []
