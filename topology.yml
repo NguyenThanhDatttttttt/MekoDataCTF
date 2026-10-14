@@ -1,26 +1,26 @@
-
+```yaml
 name: mekodatactf-ad
 
 hosts:
-  - name: attacker_a
+  - name: attacker-a
     base_box:
       image: kali
       mgmt_user: debian
       flavor: standard.kali
 
-  - name: server_a
+  - name: server-a
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
       flavor: standard.small
 
-  - name: attacker_b
+  - name: attacker-b
     base_box:
       image: kali
       mgmt_user: debian
       flavor: standard.kali
 
-  - name: server_b
+  - name: server-b
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
@@ -47,19 +47,19 @@ networks:
     accessible_by_user: false
 
 net_mappings:
-  - host: attacker_a
+  - host: attacker-a
     network: team-a-net
     ip: 10.10.1.10
 
-  - host: server_a
+  - host: server-a
     network: team-a-net
     ip: 10.10.1.20
 
-  - host: attacker_b
+  - host: attacker-b
     network: team-b-net
     ip: 10.10.2.10
 
-  - host: server_b
+  - host: server-b
     network: team-b-net
     ip: 10.10.2.20
 
@@ -73,3 +73,4 @@ router_mappings:
     ip: 10.10.2.1
 
 groups: []
+```
