@@ -1,4 +1,4 @@
-
+```yaml
 name: mekodatactf-ad
 
 hosts:
@@ -6,32 +6,27 @@ hosts:
     base_box:
       image: kali
       mgmt_user: debian
-      flavor: standard.kali
 
   - name: server-a
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
-      flavor: standard.small
 
   - name: attacker-b
     base_box:
       image: kali
       mgmt_user: debian
-      flavor: standard.kali
 
   - name: server-b
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
-      flavor: standard.small
 
 routers:
   - name: router
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
-      flavor: standard.small
 
 wan:
   name: internet-connection
@@ -73,3 +68,4 @@ router_mappings:
     ip: 10.10.2.1
 
 groups: []
+```
