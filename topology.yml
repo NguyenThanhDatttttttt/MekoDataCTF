@@ -1,4 +1,3 @@
-```yaml
 name: mekodatactf-ad
 
 hosts:
@@ -68,4 +67,3 @@ router_mappings:
     ip: 10.10.2.1
 
 groups: []
-```
