@@ -1,0 +1,22 @@
+[Unit]
+Description=Team HTTP service checker (30 second rounds)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=web-checker
+Group=web-checker
+ExecStart=/usr/bin/python3 /opt/web-checker/web_health.py --config /etc/web-checker/web_targets.json --interval 30 --timeout 3 --json
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+CapabilityBoundingSet=
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=web-checker
+
+[Install]
+WantedBy=multi-user.target

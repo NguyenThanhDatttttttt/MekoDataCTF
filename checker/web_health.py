@@ -1,8 +1,9 @@
-"""Check four ServiceDesk HTTP endpoints. Python 3; no external packages."""
+"""Check team HTTP health endpoints. Python 3; no external packages."""
 import argparse
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime, timezone
 import json
+import math
 import time
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
@@ -29,6 +30,8 @@ def check_web(target, timeout):
                 raise ValueError('Expected JSON status=ok')
             if target.get('expected_sandbox') and health.get('sandbox') != target['expected_sandbox']:
                 raise ValueError('Wrong sandbox identity')
+            if target.get('expected_node') and health.get('node') != target['expected_node']:
+                raise ValueError('Wrong node identity')
         result['status'] = 'UP'
         result['detail'] = 'HTTP 200, status=ok'
     except Exception as exc:
@@ -45,7 +48,7 @@ def main():
                         help='Seconds between checks; 0 runs once')
     parser.add_argument('--json', action='store_true', help='Output JSON per round')
     args = parser.parse_args()
-    if args.timeout <= 0 or args.interval < 0:
+    if not math.isfinite(args.timeout) or not math.isfinite(args.interval) or args.timeout <= 0 or args.interval < 0:
         parser.error('timeout must be positive; interval must be nonnegative')
     with open(args.config, encoding='utf-8-sig') as stream:
         targets = json.load(stream)['targets']
@@ -53,6 +56,7 @@ def main():
         parser.error('config needs named targets with HTTP(S) URLs')
     try:
         while True:
+            started = time.monotonic()
             with ThreadPoolExecutor(max_workers=min(len(targets), 4)) as executor:
                 results = list(executor.map(lambda t: check_web(t, args.timeout), targets))
             checked_at = datetime.now(timezone.utc).isoformat(timespec='seconds')
@@ -64,7 +68,8 @@ def main():
                     print(f"{row['name']:<12} {row['status']:<5} {row['elapsed_ms']:>5} ms  {row['url']}  {row['detail']}", flush=True)
             if not args.interval:
                 return 0 if all(r['status'] == 'UP' for r in results) else 1
-            time.sleep(args.interval)
+            # Measure the interval between round starts, including request time.
+            time.sleep(max(0, args.interval - (time.monotonic() - started)))
     except KeyboardInterrupt:
         return 130
 

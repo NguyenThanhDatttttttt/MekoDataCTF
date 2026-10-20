@@ -297,6 +297,91 @@
         daemon_reload: true
         state: restarted
 
+- name: Run the team service checker
+  hosts: checker
+  become: true
+  gather_facts: false
+  tasks:
+    - name: Install checker runtime and network tools
+      ansible.builtin.apt:
+        name: [python3, curl, iputils-ping]
+        state: present
+        update_cache: true
+        cache_valid_time: 3600
+
+    - name: Create checker service account
+      ansible.builtin.user:
+        name: web-checker
+        system: true
+        shell: /usr/sbin/nologin
+        create_home: false
+
+    - name: Create checker directories
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        owner: root
+        group: web-checker
+        mode: '0750'
+      loop: [/opt/web-checker, /etc/web-checker]
+
+    - name: Install checker application
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/../checker/web_health.py'
+        dest: /opt/web-checker/web_health.py
+        owner: root
+        group: web-checker
+        mode: '0640'
+      notify: Restart web checker
+
+    - name: Install team service targets
+      ansible.builtin.copy:
+        src: '{{ playbook_dir }}/../checker/web_targets.json'
+        dest: /etc/web-checker/web_targets.json
+        owner: root
+        group: web-checker
+        mode: '0640'
+      notify: Restart web checker
+
+    - name: Install checker service
+      ansible.builtin.copy:
+        src: web-checker.service
+        dest: /etc/systemd/system/web-checker.service
+        owner: root
+        group: root
+        mode: '0644'
+      notify: Restart web checker
+
+    - name: Start checker on boot
+      ansible.builtin.systemd_service:
+        name: web-checker
+        daemon_reload: true
+        enabled: true
+        state: started
+
+    - ansible.builtin.meta: flush_handlers
+
+    - name: Verify all four services from the checker VM
+      ansible.builtin.command:
+        argv:
+          - /usr/bin/python3
+          - /opt/web-checker/web_health.py
+          - --config
+          - /etc/web-checker/web_targets.json
+          - --json
+      become_user: web-checker
+      register: checker_initial_check
+      changed_when: false
+      until: checker_initial_check.rc == 0
+      retries: 3
+      delay: 3
+  handlers:
+    - name: Restart web checker
+      ansible.builtin.systemd_service:
+        name: web-checker
+        daemon_reload: true
+        state: restarted
+
 - name: Verify attacker peer connectivity and server isolation
   hosts: hosts
   become: true

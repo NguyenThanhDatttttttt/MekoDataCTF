@@ -8,6 +8,7 @@ lab_hosts:
   attacker3: 10.80.0.13
   attacker4: 10.80.0.14
   server: 10.80.0.20
+  checker: 10.80.0.30
 lab_attackers:
   attacker1: 10.80.0.11
   attacker2: 10.80.0.12

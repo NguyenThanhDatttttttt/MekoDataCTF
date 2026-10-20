@@ -181,15 +181,15 @@ class DefinitionTests(unittest.TestCase):
         self.assertTrue(source.exists(), 'Isolated lab topology is required')
         topology = yaml.safe_load(source.read_text(encoding='utf-8'))
         self.assertEqual({h['name'] for h in topology['hosts']},
-                         {'attacker1', 'attacker2', 'attacker3', 'attacker4', 'server'})
+                         {'attacker1', 'attacker2', 'attacker3', 'attacker4', 'server', 'checker'})
         self.assertEqual(len(topology['networks']), 1)
         self.assertEqual(len(topology['routers']), 1)
-        self.assertEqual(len(topology['net_mappings']), 5)
+        self.assertEqual(len(topology['net_mappings']), 6)
         self.assertEqual(topology['groups'], [
             {'name': 'attackers', 'nodes': ['attacker1', 'attacker2', 'attacker3', 'attacker4']}
         ])
         self.assertEqual({m['ip'] for m in topology['net_mappings']},
-                         {'10.80.0.11', '10.80.0.12', '10.80.0.13', '10.80.0.14', '10.80.0.20'})
+                         {'10.80.0.11', '10.80.0.12', '10.80.0.13', '10.80.0.14', '10.80.0.20', '10.80.0.30'})
         self.assertEqual(topology['router_mappings'][0]['ip'], '10.80.0.1')
         self.assertFalse((ROOT / 'interconnect').exists())
         self.assertFalse((ROOT / 'variables.yml').exists())

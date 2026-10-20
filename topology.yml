@@ -1,4 +1,4 @@
-name: idor-single-sandbox-five-hosts
+name: idor-single-sandbox-with-checker
 
 hosts:
   - name: attacker1
@@ -22,6 +22,12 @@ hosts:
       mgmt_user: debian
     flavor: standard.kali
   - name: server
+    base_box:
+      image: debian-12-x86_64
+      mgmt_user: debian
+    flavor: standard.small
+
+  - name: checker
     base_box:
       image: debian-12-x86_64
       mgmt_user: debian
@@ -59,6 +65,10 @@ net_mappings:
   - host: server
     network: lab-lan
     ip: 10.80.0.20
+
+  - host: checker
+    network: lab-lan
+    ip: 10.80.0.30
 
 router_mappings:
   - router: gateway

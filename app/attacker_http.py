@@ -11,7 +11,7 @@ def handler_for(node):
     class Handler(BaseHTTPRequestHandler):
         def do_GET(self):
             if self.path == '/health':
-                body = json.dumps({'node': node}).encode('utf-8')
+                body = json.dumps({'node': node, 'status': 'ok'}).encode('utf-8')
                 mime = 'application/json; charset=utf-8'
             elif self.path == '/':
                 body = (f'<!doctype html><html lang="en"><meta charset="utf-8">'

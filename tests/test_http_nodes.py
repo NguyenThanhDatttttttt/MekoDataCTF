@@ -24,7 +24,7 @@ class AttackerHTTPTests(unittest.TestCase):
                 try:
                     base = f'http://127.0.0.1:{server.server_port}'
                     with opener.open(base + '/health', timeout=3) as response:
-                        self.assertEqual(json.load(response), {'node': node})
+                        self.assertEqual(json.load(response), {'node': node, 'status': 'ok'})
                     with opener.open(base + '/', timeout=3) as response:
                         self.assertIn(node.encode(), response.read())
                 finally:
