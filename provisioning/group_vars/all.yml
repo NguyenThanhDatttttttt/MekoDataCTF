@@ -1,0 +1,15 @@
+# Lab-only credentials. Replace before use outside an isolated training cloud.
+lab_console_password: ClientLab-Only-2026!
+lab_web_password: IdorLab-Only-2026!
+lab_enforce_owner: false
+lab_hosts:
+  attacker1: 10.80.0.11
+  attacker2: 10.80.0.12
+  attacker3: 10.80.0.13
+  attacker4: 10.80.0.14
+  server: 10.80.0.20
+lab_attackers:
+  attacker1: 10.80.0.11
+  attacker2: 10.80.0.12
+  attacker3: 10.80.0.13
+  attacker4: 10.80.0.14
