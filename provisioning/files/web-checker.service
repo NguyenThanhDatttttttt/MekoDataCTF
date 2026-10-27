@@ -1,0 +1,26 @@
+[Unit]
+Description=Team HTTP service checker (60 second cycles with SQLite history)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=web-checker
+Group=web-checker
+ExecStart=/usr/bin/python3 /opt/web-checker/web_health.py --config /etc/web-checker/web_targets.json --interval 60 --timeout 3 --json --database /var/lib/web-checker/results.sqlite3
+StateDirectory=web-checker
+StateDirectoryMode=0750
+ReadWritePaths=/var/lib/web-checker
+UMask=0027
+Restart=on-failure
+RestartSec=3
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+CapabilityBoundingSet=
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=web-checker
+
+[Install]
+WantedBy=multi-user.target

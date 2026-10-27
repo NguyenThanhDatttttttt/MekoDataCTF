@@ -1,0 +1,28 @@
+{
+  "title": "IDOR Lab — Four Attackers and One Server",
+  "description": "One sandbox with four Kali attacker VMs and one ServiceDesk server on a shared LAN. A separate checker VM monitors the four attacker HTTP services every 30 seconds.",
+  "prerequisites": [
+    "Basic HTTP",
+    "Basic Linux commands"
+  ],
+  "outcomes": [
+    "Reach all five lab hosts",
+    "Observe an IDOR on ServiceDesk"
+  ],
+  "state": "UNRELEASED",
+  "show_stepper_bar": false,
+  "estimated_duration": 60,
+  "variant_sandboxes": false,
+  "levels": [
+    {
+      "title": "Five-host IDOR Lab",
+      "level_type": "ACCESS_LEVEL",
+      "order": 0,
+      "estimated_duration": 60,
+      "minimal_possible_solve_time": null,
+      "passkey": "finish-idor-lab",
+      "cloud_content": "# One sandbox, five hosts\n\nOpen the topology console for any attacker VM. Linux login: `user-access / ClientLab-Only-2026!`. The four Kali attacker pages are `http://10.80.0.11/`, `http://10.80.0.12/`, `http://10.80.0.13/`, and `http://10.80.0.14/`. Attackers can ping and open HTTP pages on the other attacker VMs. The ServiceDesk server is at `10.80.0.20`, but new connections from attacker VMs to that server are blocked, including ping and HTTP. The server can initiate connections to the attackers. Read `~/lab-addresses.txt` on an attacker VM for the address list. The separate gateway is `10.80.0.1`; the server does not route traffic. Keep this level open during the lab. Enter `finish-idor-lab` only when done.\n\nThe checker VM is 10.80.0.30. It checks all four attacker HTTP services every 30 seconds. Administrators can view results with sudo journalctl -u web-checker -f -o cat on the checker.",
+      "local_content": "This lab is designed for a CyberRangeCZ cloud sandbox. Open its assigned Training Instance."
+    }
+  ]
+}

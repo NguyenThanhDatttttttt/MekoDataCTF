@@ -1,0 +1,8 @@
+{
+  "targets": [
+    {"name": "team01", "url": "http://10.80.0.11/health", "expected_node": "attacker1"},
+    {"name": "team02", "url": "http://10.80.0.12/health", "expected_node": "attacker2"},
+    {"name": "team03", "url": "http://10.80.0.13/health", "expected_node": "attacker3"},
+    {"name": "team04", "url": "http://10.80.0.14/health", "expected_node": "attacker4"}
+  ]
+}
