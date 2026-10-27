@@ -377,7 +377,6 @@
           - --config
           - /etc/web-checker/web_targets.json
           - --json
-      become_user: web-checker
       register: checker_initial_check
       changed_when: false
       until: checker_initial_check.rc == 0
